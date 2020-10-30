@@ -7,7 +7,7 @@ var nullTag = '[object Null]',
     undefinedTag = '[object Undefined]';
 
 /** Built-in value references. */
-var symToStringTag = Symbol ? Symbol.toStringTag : undefined;
+var symToStringTag = Symbol && typeof Symbol.toStringTag === 'symbol' ? Symbol.toStringTag : undefined;
 
 /**
  * The base implementation of `getTag` without fallbacks for buggy environments.
@@ -17,12 +17,17 @@ var symToStringTag = Symbol ? Symbol.toStringTag : undefined;
  * @returns {string} Returns the `toStringTag`.
  */
 function baseGetTag(value) {
-  if (value == null) {
-    return value === undefined ? undefinedTag : nullTag;
+  try {
+    if (value == null) {
+      return value === undefined ? undefinedTag : nullTag;
+    }
+    return (symToStringTag && symToStringTag in Object(value))
+      ? getRawTag(value)
+      : objectToString(value);
+  } catch (e) {
+    return undefinedTag;
   }
-  return (symToStringTag && symToStringTag in Object(value))
-    ? getRawTag(value)
-    : objectToString(value);
+
 }
 
 module.exports = baseGetTag;
